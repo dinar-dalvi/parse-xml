@@ -1,8 +1,7 @@
 #!/usr/bin/python
 
 
-import sys, string, re, types
-import yaml, getopt
+import sys, string, re, types, yaml, getopt, os, stat, errno
 
 from xml.dom.minidom import parse
 import xml.dom.minidom
@@ -25,22 +24,33 @@ def main():
     inputfile = ''
     outputfile = 'axscm_build.yaml'
     dockerFile=''
+    inDirectoryName=''
 
     args = sys.argv[1:]
     print (len(args))
     print (args[0])
 
-    if len(args) != 1:
+    if len(args) != 2:
        usage()
     inFileName = args[0]
-    #outFileName = args[1]
+    inDirectoryName = args[1]
     #if len(args[2] > 0 ):
     #    dockerFile = args[2]
+    if CheckIsDir(inDirectoryName):
+        convertXml2Yaml(inFileName,inDirectoryName)
+    else:
+        print "Provided Directory does not exist"
+        usage()
 
-    convertXml2Yaml(inFileName)
+def CheckIsDir(directory):
+  try:
+    return stat.S_ISDIR(os.stat(directory).st_mode)
+  except OSError, e:
+    if e.errno == errno.ENOENT:
+      return False
+    raise
 
-
-def convertXml2Yaml(inFileName):
+def convertXml2Yaml(inFileName,inDirectoryName):
     # Open XML document using minidom parser
     DOMTree = xml.dom.minidom.parse(inFileName)
     collection = DOMTree.documentElement
@@ -77,9 +87,29 @@ def convertXml2Yaml(inFileName):
         for x in commands:
             print "value: %s" % x
 
+    #files= os.listdir(os.path.dirname(inDirectoryName))
+    #for f in files:
+     #   print "value: %s" % f
+     #   if (f=="Dockerfile"):
+     #       print "Found Dockerfile"
+            # add code to extract the first line from the docker file
 
-    with open(outputfile, 'a') as the_file:
-           the_file.write(outStr)
+    if not os.path.exists(inDirectoryName + "/Dockerfile"):
+       print "Dockerfile not present! "
+    else:
+         # open the file and read FROM <IMAGE>
+
+    #Make sure .applatix folder is there, if not then create one.
+    if not os.path.isdir(inDirectoryName + "/.applatix"):
+       os.makedirs(inDirectoryName + ".applatix")
+       print ".applatix folder created"
+       # Perhaps copy sample templates later.
+
+
+
+
+    #with open(outputfile, 'a') as the_file:
+       #    the_file.write(outStr)
        #print "Format: %s" % format.childNodes[0].data
        #rating = movie.getElementsByTagName('rating')[0]
        #print "Rating: %s" % rating.childNodes[0].data
