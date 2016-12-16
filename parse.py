@@ -11,7 +11,9 @@ import xml.dom.minidom
 USAGE_TEXT = """
 Convert Jenkins config.xml to Applatix template file
 
-Usage: python parse.py <in_file> <out_file>    E.g parse.py config.xml axscm_build.yaml
+Usage: python parse.py <in_file>  E.g parse.py config.xml
+
+axscm_build.yaml /Users/dinar_dalvi/applatix_code/example-node/Dockerfile
 
 """
 
@@ -21,36 +23,38 @@ def usage():
 
 def main():
     inputfile = ''
-    outputfile = ''
+    outputfile = 'axscm_build.yaml'
+    dockerFile=''
 
     args = sys.argv[1:]
     print (len(args))
     print (args[0])
-    print (args[1])
 
-    if len(args) != 2:
+    if len(args) != 1:
        usage()
     inFileName = args[0]
-    outFileName = args[1]
+    #outFileName = args[1]
+    #if len(args[2] > 0 ):
+    #    dockerFile = args[2]
 
-    convertXml2Yaml(inFileName,outFileName)
+    convertXml2Yaml(inFileName)
 
 
-def convertXml2Yaml(inFileName, outFileName):
+def convertXml2Yaml(inFileName):
     # Open XML document using minidom parser
     DOMTree = xml.dom.minidom.parse(inFileName)
     collection = DOMTree.documentElement
     if collection.hasAttribute("shelf"):
        print "Root element : %s" % collection.getAttribute("scm")
 
-    # Get all the movies in the collection
+    # Get all the scm's in the collection
     scms = collection.getElementsByTagName("scm")
 
     branches = collection.getElementsByTagName("branches")
 
     builders = collection.getElementsByTagName("builders")
 
-    # Print detail of each movie.
+    # Print detail.
     for scm in scms:
        print "*****Movie*****"
        if scm.hasAttribute("class"):
@@ -73,6 +77,9 @@ def convertXml2Yaml(inFileName, outFileName):
         for x in commands:
             print "value: %s" % x
 
+
+    with open(outputfile, 'a') as the_file:
+           the_file.write(outStr)
        #print "Format: %s" % format.childNodes[0].data
        #rating = movie.getElementsByTagName('rating')[0]
        #print "Rating: %s" % rating.childNodes[0].data

@@ -56,12 +56,10 @@
   <concurrentBuild>false</concurrentBuild>
   <builders>
     <hudson.tasks.Shell>
-      <command>docker info
-#docker build -t dinardalvi/node-app:${BUILD_NUMBER} .
-#docker tag dinardalvi/node-app:${BUILD_NUMBER} dinardalvi/node-app:latest
-docker images
-#docker login --username=$DOCKER_USER --password=$DOCKER_PASS $DOCKER_HOST
-#docker push dinardalvi/node-app:${BUILD_NUMBER}</command>
+      <command>
+        docker login --username=$DOCKER_USER --password=$DOCKER_PASS $DOCKER_HOST
+        docker build -t dinarapplatix/node-app .
+        docker push dinarapplatix/node-app</command>
     </hudson.tasks.Shell>
   </builders>
   <publishers/>
