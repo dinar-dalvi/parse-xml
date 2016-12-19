@@ -1,0 +1,26 @@
+---
+type: service_template
+subtype: container
+name: build
+description: This is the base template for building Node component.
+container:
+  resources:
+    mem_mib: 1024
+    cpu_cores: 0.3
+  image: 
+  docker_options: ""
+  command:
+inputs:
+  artifacts:
+  - from: "%%code%%"
+    path: "/src"
+  parameters:
+    commit:
+      default: "%%session.commit%%"
+    code:
+outputs:
+  artifacts:
+    binary:
+      path: "/src"
+labels:
+    "ax_ea_docker_enable": "{ \"graph-storage-name\": \"devopsbuildstorage\", \"graph-storage-size\": \"10Gi\" }"

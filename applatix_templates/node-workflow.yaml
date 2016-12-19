@@ -1,0 +1,19 @@
+---
+type: service_template
+subtype: workflow
+name: node-workflow
+description: workflow example
+inputs:
+  parameters:
+    commit:
+      default: "%%session.commit%%"
+    repo:
+      default: "%%session.repo%%"
+steps:
+- checkout:
+    template: axscm-checkout
+- build:
+    template: build
+    parameters:
+      code: "%%steps.checkout.code%%"
+  

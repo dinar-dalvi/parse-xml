@@ -1,0 +1,26 @@
+---
+type: service_template
+subtype: container
+name: node-build
+description: This is the base template for building Node component.
+container:
+  resources:
+    mem_mib: 1024
+    cpu_cores: 0.3
+  image: "node:argon"
+  docker_options: ""
+  command: "sh -c 'cd /src && docker login -u dinarapplatix -p Test1234!@#$ &&  docker build -t dinarapplatix/node-app . && docker push dinarapplatix/node-app:latest'"
+inputs:
+  artifacts:
+  - from: "%%code%%"
+    path: "/src"
+  parameters:
+    commit:
+      default: "%%session.commit%%"
+    code:
+outputs:
+  artifacts:
+    binary:
+      path: "/src"
+labels:
+    "ax_ea_docker_enable": "{ \"graph-storage-name\": \"devopsbuildstorage\", \"graph-storage-size\": \"10Gi\" }"

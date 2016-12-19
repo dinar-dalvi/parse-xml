@@ -34,8 +34,7 @@ def main():
        usage()
     inFileName = args[0]
     inDirectoryName = args[1]
-    #if len(args[2] > 0 ):
-    #    dockerFile = args[2]
+
     if CheckIsDir(inDirectoryName):
         convertXml2Yaml(inFileName,inDirectoryName)
     else:
@@ -51,6 +50,16 @@ def CheckIsDir(directory):
     raise
 
 def convertXml2Yaml(inFileName,inDirectoryName):
+
+    #Declare variables
+    gitUrl = u''
+    branchname = u''
+
+    gitUrl_value = u''
+    branchname_value = u''
+    applatix_command = u''
+    imagename = u''
+
     # Open XML document using minidom parser
     DOMTree = xml.dom.minidom.parse(inFileName)
     collection = DOMTree.documentElement
@@ -59,45 +68,46 @@ def convertXml2Yaml(inFileName,inDirectoryName):
 
     # Get all the scm's in the collection
     scms = collection.getElementsByTagName("scm")
-
     branches = collection.getElementsByTagName("branches")
-
     builders = collection.getElementsByTagName("builders")
 
-    # Print detail.
+    # Start getting details
     for scm in scms:
-       print "*****Movie*****"
        if scm.hasAttribute("class"):
-          url = scm.getElementsByTagName('url')[0]
-          print "URL: %s" % url.childNodes[0].data
+          gitUrl = scm.getElementsByTagName('url')[0]
+          gitUrl_value = gitUrl.childNodes[0].data
 
     for branch in branches:
-       print "*****branch*****"
-       branch_name = branch.getElementsByTagName('name')[0]
-       print "Branch: %s" % branch_name.childNodes[0].data
+       branchname = branch.getElementsByTagName('name')[0]
+       branchname_value =branchname.childNodes[0].data
+
 
     for builder in builders:
-        print "*****builders*****"
         command = builder.getElementsByTagName('command')[0]
-        print "command: %s" % command.childNodes[0].data
         commands= command.childNodes[0].data.split('\n')
-        print "command: %s" % commands[1]
-        print "*****Comamnds*****"
 
-        for x in commands:
-            print "value: %s" % x
+    #iterate through commands array and build a complete command structure.
+    for x in commands:
+        print "value: %s" % x
+        if (len(applatix_command) == 0):
+            if (len(x) > 0):
+                applatix_command =  applatix_command.strip('\t\n\r') + x + ' && '
+        else:
+            applatix_command = applatix_command.strip('\t\n\r') + x + ' && '
 
-    #files= os.listdir(os.path.dirname(inDirectoryName))
-    #for f in files:
-     #   print "value: %s" % f
-     #   if (f=="Dockerfile"):
-     #       print "Found Dockerfile"
-            # add code to extract the first line from the docker file
+    #remove the traling &&
+    applatix_command= applatix_command[:-3]
 
     if not os.path.exists(inDirectoryName + "/Dockerfile"):
        print "Dockerfile not present! "
     else:
-         # open the file and read FROM <IMAGE>
+         # open the Dockerfile file and read FROM as we need it for the <IMAGE>
+         with open(inDirectoryName + "/Dockerfile") as f:
+             for line in f:
+                 if "FROM" in line:
+                     print line
+                     imagename =line[4:]
+             f.close()
 
     #Make sure .applatix folder is there, if not then create one.
     if not os.path.isdir(inDirectoryName + "/.applatix"):
@@ -105,16 +115,29 @@ def convertXml2Yaml(inFileName,inDirectoryName):
        print ".applatix folder created"
        # Perhaps copy sample templates later.
 
+    print "ALL NEEDED VARIABLES"
+    print "gitURL command: %s" % gitUrl_value
+    print "branch name : %s" % branchname_value
+    print "imagename  : %s" % imagename
+    print "applatix command: %s" % applatix_command
 
+    data= u''
+    with open(os.getcwd() + "/applatix_templates/axscm_docker_build_sample.yaml", 'r') as myfile:
+        data=myfile.read()
+        myfile.close()
 
+    #replace needed parts.
+    data = data.replace("command:", "command: " + '"' + "sh -c 'cd /src && " + applatix_command + "'" + '"')
+    data = data.replace("image:", "image: " + '"' + imagename.strip() + '"')
 
-    #with open(outputfile, 'a') as the_file:
-       #    the_file.write(outStr)
-       #print "Format: %s" % format.childNodes[0].data
-       #rating = movie.getElementsByTagName('rating')[0]
-       #print "Rating: %s" % rating.childNodes[0].data
-       #d#escription = movie.getElementsByTagName('description')[0]
-       #print "Description: %s" % description.childNodes[0].data
+    print "data: %s" % data
+
+    #write the file
+    with open(os.getcwd() + "/applatix_templates/axscm_docker_build_dinar.yaml", 'wb+') as newfile:
+        newfile.write(data)
+        newfile.close()
+
+    print "All Done %s"
 
 if __name__ == '__main__':
     main()
