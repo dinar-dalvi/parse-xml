@@ -133,7 +133,7 @@ def convertXml2Yaml(inFileName,inDirectoryName):
     print "data: %s" % data
 
     #write the file
-    with open(os.getcwd() + "/applatix_templates/axscm_docker_build_dinar.yaml", 'wb+') as newfile:
+    with open(os.getcwd() + "/applatix_templates/axscm_docker_build.yaml", 'wb+') as newfile:
         newfile.write(data)
         newfile.close()
 
